@@ -1,0 +1,260 @@
+{% extends "layout.html" %}
+{% block title %}Centros{% endblock %}
+{% block head %}
+{{ super() }}
+<link rel='stylesheet' href='https://cdn.datatables.net/responsive/1.0.4/css/dataTables.responsive.css'>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin="" />
+{% endblock %}
+{% block content %}
+<meta id="elementsPerPage" data-elementsPerPage="{{elementsPerPage}}">
+<div class="container mt-5  ">
+  <div class="card">
+    <div class="card-header">
+      <div class="row">
+        <h2 class="col-10">Centros</h2>
+        {% if has_permission(session,"helpcenter_new") %}
+        <a href="{{ url_for('helpcenter_new') }}"  class="btn btn-success col-2 align-middle"><i class="fas fa-plus align-middle"> </i></a>
+        {% endif %}
+      </div>
+     
+    </div>
+    <div class="card-body">
+      <table id="table-helpcenters" class="dataTable hover order-column stripe display nowrap" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Direccion</th>       
+            <th scope="col">Telefono</th>         
+            <th scope="col">Hora de apertura</th>
+            <th scope="col">Hora de cierre</th>
+            <th scope="col">Municipio</th>
+            <th scope="col">Web</th>
+            <th scope="col">Email</th>
+            <th scope="col">Ubicacion</th>
+            <th scope="col">Opciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for helpcenter in helpcenters %}
+          <tr>
+            <td>{{ helpcenter.name }}</td>
+              <td>{% if helpcenter.accept==None %}
+                Esperando Confirmacion
+                {% else %}
+                {% if helpcenter.accept==True %}
+                Aceptado
+                {% else %}
+                Rechazado
+                {% endif %}
+                {% endif %}
+            </td>
+            <td>{{ helpcenter.address }}</td>        
+            <td>{{ helpcenter.phone }}</td>    
+            <td>{{ helpcenter.opening_time }}</td>
+            <td>{{ helpcenter.closing_time }}</td>
+            <td>{{ municipios[helpcenter.municipio] }}</td>  
+            <td>{{ helpcenter.web }}</td>  
+            <td>{{ helpcenter.email }}</td>              
+            <td>{% if helpcenter.longitude!= None %}
+              
+              <a id="abrirmapa" href="#MAPA" data-target="#MAPA" data-toggle="modal" data-lng="{{helpcenter.longitude}}"data-lat="{{helpcenter.latitude}}"
+               class="btn btn-light text-left btn-block open-AddBookDialog"
+              onclick="abrirmapa(this)">Abrir Mapa</a>
+              {% else %}
+                Sin Ubicacion
+              {% endif %}
+            </td>  
+            <td>   
+              {% if helpcenter.view_protocol!=None %}
+              <a href="{{ url_for('helpcenter_downloadpdf', helpcenter_id=helpcenter.id) }}" title="Descargar Protocolo" class="btn" style="height: 38px; width: 42px;"><i class="fas fa-file-download"></i></a>
+              {% endif %}                     
+              {% if helpcenter.accept==None %}
+              <a href="{{ url_for('helpcenter_reject', helpcenter_id=helpcenter.id) }}" title="Rechazar Centro de Ayuda" class="btn" style="height: 38px; width: 42px;"><i class="fas fa-times"></i></a>
+              <a href="{{ url_for('helpcenter_accept', helpcenter_id=helpcenter.id) }}" title="Aceptar Centro de Ayuda" class="btn"><i class="fas fa-check"></i></a>
+              {% else %}
+                {% if helpcenter.accept==True %}
+                  {% if helpcenter.status==True %}
+                  <a href="{{ url_for('helpcenter_unpublish', helpcenter_id=helpcenter.id) }}" title="Despublicar Centro de Ayuda" class="btn"><i class="fas fa-toggle-on"></i></a>
+                  {% else %}
+                  <a href="{{ url_for('helpcenter_publish', helpcenter_id=helpcenter.id) }}" title="Publicar Centro de Ayuda" class="btn"><i class="fas fa-toggle-off"></i></a>
+                  {% endif %}
+                  {% if has_permission(session,"turn_new") %}
+                  <a href="{{ url_for('turns_index', centro=helpcenter.id) }}" title="Ver turnos" class="btn"><i class="fas fa-ticket-alt"></i></a>
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+              {% if has_permission(session,"helpcenter_update") %}
+              <a href="{{ url_for('helpcenter_edit', helpcenter_id=helpcenter.id) }}" title="Editar Centro" class="btn" id=><i class="fas fa-edit"></i></a>
+              {% endif %}
+              
+              {% if has_permission(session,"helpcenter_delete") %}
+              <a href="#addBookDialog" data-target="#addBookDialog" data-toggle="modal" data-id="{{helpcenter.id}}"
+                data-name="{{helpcenter.name}}" title="Eliminar Centro" class="btn open-AddBookDialog"><i class="fas fa-trash"></i></a>
+              <a hidden href="{{ url_for('helpcenter_delete', helpcenter_id=helpcenter.id) }}" title="Eliminar Centro Sin Preguntar"
+                class="btn" id="eliminarBtn{{helpcenter.id}}"></a>
+              {% endif %}
+            </td>
+            
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="addBookDialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Esta seguro que desea eliminar el centro: </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal" id="ConfirmacionEliminar">Eliminar
+          Centro</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="MAPA" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Ubicacion</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="mapid" style="height:500px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+      
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="alert" role="alert" id="result"></div>
+
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+<script src='https://cdn.datatables.net/responsive/1.0.4/js/dataTables.responsive.js'></script>
+<script>
+  $(document).ready(function () {
+    texto=$("#exampleModalLongTitle").html()
+    $(document).on("click", ".open-AddBookDialog", function () {
+      var helpcenter_id = $(this).data('id');
+      var helpcenter_name = $(this).data('name');
+      $("#exampleModalLongTitle").html(texto + helpcenter_name + " ?");
+      $(document).on("click", "#ConfirmacionEliminar", function () {
+        aux = "eliminarBtn" + helpcenter_id
+        document.getElementById(aux).click()
+
+      });
+    });
+  });
+
+
+  var elementsperpage = $('#elementsPerPage').data().elementsperpage;
+  $(document).ready(function () {
+    $('#table-helpcenters').DataTable({
+      lengthMenu: [elementsperpage],
+      lengthChange: false,
+      "bPaginate": "simple", // "simple" option for 'Previous' and 'Next' buttons only
+      responsive: true,
+      "bFilter": true,
+      language: {
+        "decimal": "",
+        "emptyTable": "No hay información",
+        "info": "Mostrando _START_ a _END_ de _TOTAL_",
+        "infoEmpty": "Mostrando 0 a 0 de 0",
+        "infoFiltered": "(Filtrado de _MAX_ total)",
+        "infoPostFix": "",
+        "thousands": ",",
+        "lengthMenu": "Mostrar _MENU_",
+        "loadingRecords": "Cargando...",
+        "processing": "Procesando...",
+        "search": "Buscar:",
+        "zeroRecords": "Sin resultados",
+        "paginate": {
+          "first": "Primero",
+          "last": "Ultimo",
+          "next": "Siguiente",
+          "previous": "Anterior"
+        }
+      }
+    }
+
+    );
+  });
+
+</script>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
+<script>
+  
+  let map;
+  let marker;
+  function abrirmapa(e) {
+    setInterval(function () {
+      map.invalidateSize();
+    }, 100);
+    lat=e.getAttribute("data-lat")
+    lng=e.getAttribute("data-lng")
+    if (marker) 
+      marker.remove()
+      
+    
+    if (lat != "None" ) {
+      marker = L.marker([lat, lng]).addTo(map)
+      map.setView([lat, lng], 13)
+    }
+  }
+
+
+  const addMarker = ({ lat, lng }) => {
+    if (marker) marker.remove()
+    marker = L.marker([lat, lng]).addTo(map)
+
+  }
+  const initializeMap = (selector) => {
+    map = L.map(selector).setView([-34.9187, -57.956], 13);
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+      maxZoom: 18,
+      id: 'mapbox/streets-v11',
+      tileSize: 512,
+      zoomOffset: -1,
+      accessToken: 'pk.eyJ1IjoibmFodWVsYmlndSIsImEiOiJja2g2azdsYXUwM3FrMnNyN2wwdnl1YW8xIn0.Y6PFdcRQZkQRufGJLZh9IQ'
+    }).addTo(map);
+  
+    
+  }
+
+  window.onload = () => {
+    initializeMap('mapid')
+
+  }
+
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+{% block title %}Turnos{% endblock %}
+{% block head %}
+{{ super() }}
+<link rel='stylesheet' href='https://cdn.datatables.net/responsive/1.0.4/css/dataTables.responsive.css'>
+{% endblock %}
+{% block content %}
+<meta id="elementsPerPage" data-elementsPerPage="{{elementsPerPage}}">
+<div class="container mt-5  ">
+  <div class="card">
+    <div class="card-header">
+      <div class="row">
+        <h2 class="col-10">Turnos</h2>
+        {% if has_permission(session,"turn_new") and estado %}
+        <a href="{{ url_for('turns_new', helpcenter_id=center) }}"  class="btn btn-success col-2 align-middle"><i class="fas fa-plus align-middle"> </i></a>
+        {% endif %}
+      </div>
+     
+    </div>
+    <div class="card-body">
+      <table id="table-helpcenters" class="dataTable hover order-column stripe display nowrap" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th scope="col">Usuario</th>
+            <th scope="col">Telefono</th>
+            <th scope="col">Hora de inicio</th>
+            <th scope="col">Hora de fin</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Opciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for turn in turns %}
+          <tr>
+            <td>{{ turn.user }}</td>
+            <td>{{ turn.phone }}</td>
+            <td>{{ turn.opening_time }}</td>
+            <td>{{ turn.closing_time }}</td>
+            <td>{{ turn.date }}</td>
+            <td>
+              {% if has_permission(session,"turn_update") %}
+              <a href="{{ url_for('turns_edit', turn_id=turn.id) }}" title="Editar Turno" class="btn" id=><i class="fas fa-edit"></i></a>
+              {% endif %}
+              {% if has_permission(session,"turn_delete") %}
+              <a href="#addBookDialog" data-target="#addBookDialog" data-toggle="modal" data-id="{{turn.id}}"
+                data-name="{{turn.user}}" title="Eliminar Turno" class="btn open-AddBookDialog"><i class="fas fa-trash"></i></a>
+              <a hidden href="{{ url_for('turns_delete', turn_id=turn.id) }}" title="Eliminar Turno Sin Preguntar"
+                  class="btn" id="eliminarBtn{{turn.id}}"></a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="addBookDialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Esta seguro que desea eliminar el turno de </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal" id="ConfirmacionEliminar">Eliminar
+          Turno</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="alert" role="alert" id="result"></div>
+
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+<script src='https://cdn.datatables.net/responsive/1.0.4/js/dataTables.responsive.js'></script>
+<script>
+  $(document).ready(function () {
+    texto=$("#exampleModalLongTitle").html()
+    console.log(texto)
+    $(document).on("click", ".open-AddBookDialog", function () {
+      var turno_id = $(this).data('id');
+      var turno_name = $(this).data('name');
+      $("#exampleModalLongTitle").html(texto + turno_name + " ?");
+      $(document).on("click", "#ConfirmacionEliminar", function () {
+        aux = "eliminarBtn" + turno_id
+        document.getElementById(aux).click()
+
+      });
+    });
+  });
+
+
+  var elementsperpage = $('#elementsPerPage').data().elementsperpage;
+  $(document).ready(function () {
+    $('#table-helpcenters').DataTable({
+      "order": [[ 3, "asc" ],[ 1, "asc" ]],
+      lengthMenu: [elementsperpage],
+      lengthChange: false,
+      "bPaginate": "simple", // "simple" option for 'Previous' and 'Next' buttons only
+      responsive: true,
+      "bFilter": true,
+      language: {
+        "decimal": "",
+        "emptyTable": "No hay información",
+        "info": "Mostrando _START_ a _END_ de _TOTAL_",
+        "infoEmpty": "Mostrando 0 a 0 de 0",
+        "infoFiltered": "(Filtrado de _MAX_ total)",
+        "infoPostFix": "",
+        "thousands": ",",
+        "lengthMenu": "Mostrar _MENU_",
+        "loadingRecords": "Cargando...",
+        "processing": "Procesando...",
+        "search": "Buscar:",
+        "zeroRecords": "Sin resultados",
+        "paginate": {
+          "first": "Primero",
+          "last": "Ultimo",
+          "next": "Siguiente",
+          "previous": "Anterior"
+        }
+      }
+    }
+
+    );
+  });
+
+</script>
+{% endblock %}

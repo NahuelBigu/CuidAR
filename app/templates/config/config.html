@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% from "formMacros/inputMacro.html" import render_field %}
+{% block title %}Configuracion{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <div class="card">
+    <div class="card-header">
+      <h2>Configuracion</h2>
+    </div>
+    <div class="card-body">
+      <form action="" method="POST">
+        {{ form.csrf_token }}
+
+        {{ render_field(form.title, value=config.title) }}
+
+        {{ render_field(form.description, data=config.description) }}
+
+        {{ render_field(form.email, value=config.email) }}
+
+        {{ render_field(form.elementsPerPage, value=config.elementsPerPage) }}
+
+        {{ render_field(form.habilitate, checked=config.habilitate) }}
+        <button type="submit" class="btn btn-primary btn-block" >Guardar</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

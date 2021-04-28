@@ -1,0 +1,107 @@
+{% extends "layout.html" %}
+{% block title %}Perfil{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-md-1 mr-5">
+                            <img src="{{ url_for('static', filename = 'images/perfil/perfil1.png') }}" id="imgProfile"
+                                style="max-width: 100px; max-height: 100px" alt="Imagen de perfil" />
+                        </div>
+                        <div class="col my-auto">
+                            <h2 class="align-middle">{{ user.first_name }} {{ user.last_name }}</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="basicInfo-tab" data-toggle="tab" href="#basicInfo"
+                                        role="tab" aria-controls="basicInfo" aria-selected="true">Informacion Basica</a>
+                                </li>
+
+                            </ul>
+                            <div class="tab-content ml-1" id="myTabContent">
+                                <div class="tab-pane fade show active" id="basicInfo" role="tabpanel"
+                                    aria-labelledby="basicInfo-tab">
+
+
+                                    <div class="row">
+                                        <div class="col-sm-3 col-md-2 col-5">
+                                            <label style="font-weight:bold;">Nombre de Usuario</label>
+                                        </div>
+                                        <div class="col-md-8 col-6">
+                                            {{ user.username }}
+                                        </div>
+                                    </div>
+                                    <hr />
+
+                                    <div class="row">
+                                        <div class="col-sm-3 col-md-2 col-5">
+                                            <label style="font-weight:bold;">Email</label>
+                                        </div>
+                                        <div class="col-md-8 col-6">
+                                            {{ user.email }}
+                                        </div>
+                                    </div>
+                                    <hr />
+
+
+                                    <div class="row">
+                                        <div class="col-sm-3 col-md-2 col-5">
+                                            <label style="font-weight:bold;">Roles</label>
+                                        </div>
+                                        <div class="col-md-8 col-6">
+                                            {% for rol in user.roles %}
+                                            {{rol.name}} <br>
+                                            {% endfor %}
+
+                                        </div>
+                                    </div>
+                                    <hr />
+                                    <div class="row">
+                                        <div class="col-sm-3 col-md-2 col-5">
+                                            <label style="font-weight:bold;">Fecha de creacion</label>
+                                        </div>
+                                        <div class="col-md-8 col-6">
+                                            {{ user.created_at }}
+                                        </div>
+                                    </div>
+                                    <hr />
+
+
+                                </div>
+
+                            </div>
+                        </div>
+                        
+                        {% if not user.id_google and not user.id_facebook %}
+                        <div class="col-md-6"> <a class="btn btn-block "style="color: white;background-color: #ea4335;" href="{{ url_for('oauth_google_link') }}"><i class="fab fa-google mr-2"></i> Vincular con Gmail</a> </div>
+                        <div class="col-md-6"> <a class="btn btn-block "style="color: white;background-color: #3b5998;" href="{{ url_for('oauth_facebook_link') }}"><i class="fab fa-facebook-f mr-2"></i>  Vincular con Facebook</a> </div>
+                        {%else%}
+                            {% if user.id_google %}
+                            <div class="col-md-12"> <a class="btn btn-block btn-outline-danger" href="{{ url_for('oauth_google_del_link') }}"><i class="fab fa-google mr-2"></i> Desvincular cuenta de Gmail</a> </div>
+                            {%else%}
+                            <div class="col-md-12"> <a class="btn btn-block btn-outline-danger" href="{{ url_for('oauth_facebook_del_link') }}"><i class="fab fa-facebook-f mr-2"></i>  Desvincular cuenta de Facebook</a> </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

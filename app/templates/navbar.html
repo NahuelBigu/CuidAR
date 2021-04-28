@@ -1,0 +1,68 @@
+<!-- Plug Bootstrap Nav Bar code here -->
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: rgb(105, 175, 255);">
+    <a class="navbar-brand" href="/">Cuidar</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+            </li>
+            {% if is_authenticated(session) %}
+            {% if has_permission(session,"user_index") %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('user_index') }}">Usuarios</a>
+            </li>
+            {% endif %}
+            {% if has_permission(session,"helpcenter_index") %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('helpcenter_index') }}">Centros de Ayuda</a>
+            </li>
+            {% endif %}
+            {% if has_permission(session,"config_index") %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('configuration_config') }}">Configuracion</a>
+            </li>
+            {% endif %}
+            {% endif %}
+        </ul>
+        <form class="form-inline ">
+            {% if is_authenticated(session) %}
+            <div class="nav-item dropdown ">
+                <a class="nav-link dropdown-toggle pl-0 pr-0" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false" style="color: white">
+                    {{ session["user_name"] }}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-right" id="dropdown-menu2" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="{{ url_for('user_profile') }}">Ver perfil</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{{ url_for('auth_logout') }}">Cerrar sesión</a>
+                </ul>
+            </div>
+
+            {% else %}
+            <!-- <a href="{{ url_for('user_new') }}" class="link">Registrarse</a> -->
+            <a href="{{ url_for('auth_login') }}" class="btn btn-outline-dark">Iniciar Sesion</a>
+            {% endif %}
+        </form>
+    </div>
+</nav>
+<script>
+    function actualizar() {
+        if (window.matchMedia("(min-width: 991px)").matches) {
+            /* La pantalla tiene al menos 990px píxeles de ancho */
+            document.getElementById('dropdown-menu2').classList.remove('dropdown-menu-left');
+            document.getElementById('dropdown-menu2').classList.add('dropdown-menu-right');
+        } else {
+            /* La pantalla tiene menos de 990px píxeles de ancho */
+            document.getElementById('dropdown-menu2').classList.remove('dropdown-menu-right');
+            document.getElementById('dropdown-menu2').classList.add('dropdown-menu-left');
+        }
+    }
+    actualizar()
+    window.addEventListener('resize', actualizar);
+    
+</script>

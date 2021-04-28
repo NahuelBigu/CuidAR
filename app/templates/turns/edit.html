@@ -1,0 +1,108 @@
+{% extends "layout.html" %}
+{% from "formMacros/inputMacro.html" import render_field %}
+{% from "formMacros/inputMacro.html" import render_field_selectmultiple %}
+{% from "formMacros/inputMacro.html" import render_field_time %}
+{% from "formMacros/inputMacro.html" import render_field_date %}
+{% block title %}Editar Turno{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block content %}
+<meta id="hora_inicial" data-hora="{{h}}">
+<meta id="fecha_inicial" data-fecha="{{fecha}}">
+<meta id="ruta" data-ruta="{{ url_for('turnos_disponibles',helpcenter_id=center,date=0) }}">
+<div class="container mt-5">
+  <div class="card">
+    <div class="card-header">
+      <h2>Editando turno</h2>
+    </div>
+    <div class="card-body">
+      <form action="{{ url_for('turns_edit', turn_id=turn_id ) }}" method="POST" class="">
+  
+        {{ form.csrf_token }}
+        <div id="fecha">
+          {{ render_field_date(form.date) }}
+        </div>
+        <div id="turnos">
+          {{ render_field_time(form.opening_time) }}
+        </div>
+        {{ render_field(form.user) }}
+        {{render_field(form.phone)}}
+        
+        
+        <div class="text-center">
+          <div class="row">
+            <div class="col-md-6">
+              <a href="{{ url_for('turns_index', centro=center) }}" class="btn btn-outline-primary btn-block">Volver</a>
+            </div>
+            <div class="col-md-6">
+              <button type="submit" class="btn btn-primary btn-block" >Guardar</button>
+            </div>
+       </div>
+      
+        
+      </form>
+
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+{% block scripts %}
+<script> 
+
+  var ruta = $('#ruta').data().ruta.slice(0, -1);
+
+  $('#fecha :input').change(function() {
+    rutaAux=ruta.concat($(this)['0'].value.replaceAll('-', '').toString())
+
+    $.ajax({url: rutaAux, success: function(result){
+      $("#turnos :input").find('option').remove()
+      $.each(result, function (i, item) {
+
+      $('#turnos :input').append($('<option>', { 
+        value: item,
+        text : item 
+      }));
+    });
+    },error: function(){
+      $("#turnos :input").find('option').remove()
+      $('#turnos :input').append($('<option>', { 
+        text : "No disponible" ,
+        disabled:true,
+        selected:true
+      }));
+    }}); 
+  });
+  $(document).ready(function() {
+    var fecha = $('#fecha_inicial').data().fecha
+    rutaAux=ruta.concat(fecha)
+    var horita = $("#hora_inicial").data().hora;
+    
+    $.ajax({url: rutaAux, success: function(result){
+      $("#turnos :input").find('option').remove()
+      $.each(result, function (i, item) {
+        $('#turnos :input').append($('<option>', { 
+         value: item,
+         text : item 
+       }));
+      });
+     
+      $('#turnos :input').append($('<option>', { 
+        value: horita,
+        text : horita,
+        selected: true 
+      }));
+    },error: function(){
+      $("#turnos :input").find('option').remove()
+      $('#turnos :input').append($('<option>', { 
+
+        text : "No disponible" ,
+        disabled:true,
+        selected:true
+      }));
+    }}); 
+  });
+</script>
+{% endblock %}

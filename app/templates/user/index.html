@@ -1,0 +1,147 @@
+{% extends "layout.html" %}
+{% block title %}Usuarios{% endblock %}
+{% block head %}
+{{ super() }}
+<link rel='stylesheet' href='https://cdn.datatables.net/responsive/1.0.4/css/dataTables.responsive.css'>
+<link rel="stylesheet" href="{{ url_for('static', filename='table.css') }}" />
+{% endblock %}
+{% block content %}
+<meta id="elementsPerPage" data-elementsPerPage="{{elementsPerPage}}">
+<div class="container mt-5  ">
+  <div class="card">
+    <div class="card-header">
+      <div class="row">
+        <h2 class="col-10">Usuarios</h2>
+        {% if has_permission(session,"user_new") %}
+        <a href="{{ url_for('user_new') }}"  class="btn btn-success col-2 align-middle"><i class="fas fa-plus align-middle"> </i></a>
+        {% endif %}
+      </div>
+     
+    </div>
+    <div class="card-body">
+      <table id="table-users" class="dataTable hover order-column stripe display nowrap" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th scope="col">Email</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Apellido</th>
+            <th scope="col">Nombre de Usuario</th>
+            <th scope="col">Activo</th>
+            <th scope="col">Opciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td>{{ user.email }}</td>
+            <td>{{ user.first_name }}</td>
+            <td>{{ user.last_name }}</td>
+            <td>{{ user.username }}</td>
+            <td>{% if user.active==True %} Activo {% else %} Desactivado {% endif %}</td>
+            <td>
+              {% if has_permission(session,"user_update") %}
+              {% if user.active==True %}
+              <a href="{{ url_for('deactivate_user', user_id=user.id) }}" title="Deshabilitar Usuario" class="btn" style="height: 38px; width: 42px;"><i class="fas fa-times"></i></i></a>
+              {% else %}
+              <a href="{{ url_for('activate_user', user_id=user.id) }}" title="Habilitar Usuario" class="btn"><i class="fas fa-check"></i></a>
+              {% endif %}
+              <a href="{{ url_for('edit_user', username=user.username) }}" title="Editar Usuario" class="btn" id=><i
+                  class="fas fa-user-edit"></i></a>
+              {% endif %}
+              {% if has_permission(session,"user_destroy") %}
+              <a href="#addBookDialog" data-target="#addBookDialog" data-toggle="modal" data-id="{{user.id}}"
+                data-username="{{user.username}}" title="Eliminar Usuario" class="btn open-AddBookDialog"><i
+                  class="fas fa-user-slash"></i></a>
+              <a hidden href="{{ url_for('delete_user', user_id=user.id) }}" title="Eliminar Usuario Sin Preguntar"
+                class="btn" id="eliminarBtn{{user.id}}"><i class="fas fa-user-edit"></i></a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="addBookDialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Esta seguro que desea eliminar a </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal" id="ConfirmacionEliminar">Eliminar
+          usuario</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="alert" role="alert" id="result"></div>
+
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+<script src='https://cdn.datatables.net/responsive/1.0.4/js/dataTables.responsive.js'></script>
+<script>
+  $(document).ready(function () {
+    texto=$("#exampleModalLongTitle").html()
+    $(document).on("click", ".open-AddBookDialog", function () {
+      var user_id = $(this).data('id');
+      var user_username = $(this).data('username');
+      $("#exampleModalLongTitle").html(texto + user_username + " ?");
+      $(document).on("click", "#ConfirmacionEliminar", function () {
+        aux = "eliminarBtn" + user_id
+        console.log(aux)
+        document.getElementById(aux).click()
+
+      });
+    });
+  });
+
+
+  var elementsperpage = $('#elementsPerPage').data().elementsperpage;
+  $(document).ready(function () {
+    $('#table-users').DataTable({
+      lengthMenu: [elementsperpage],
+      lengthChange: false,
+      "bPaginate": "simple", // "simple" option for 'Previous' and 'Next' buttons only
+      responsive: true,
+      "bFilter": true,
+      language: {
+        "decimal": "",
+        "emptyTable": "No hay información",
+        "info": "Mostrando _START_ a _END_ de _TOTAL_",
+        "infoEmpty": "Mostrando 0 a 0 de 0",
+        "infoFiltered": "(Filtrado de _MAX_ total)",
+        "infoPostFix": "",
+        "thousands": ",",
+        "lengthMenu": "Mostrar _MENU_",
+        "loadingRecords": "Cargando...",
+        "processing": "Procesando...",
+        "search": "Buscar:",
+        "zeroRecords": "Sin resultados",
+        "paginate": {
+          "first": "Primero",
+          "last": "Ultimo",
+          "next": "Siguiente",
+          "previous": "Anterior"
+        }
+      }
+    }
+
+    );
+  });
+
+</script>
+{% endblock %}

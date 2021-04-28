@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %}Error{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block content %}
+
+<div class="container mt-5"> 
+        
+    <div class="card ">
+        <div class="card-header ">
+            <h1>Volvemos pronto!</h1>
+        </div>
+        <div class="card-body">
+            <p>Disculpe el inconveniente pero nuestro equipo esta realizando mantenimiento a la pagina. De ser necesario siempre nos puede contactar a {{ config.email }}</p>
+            <p>Volveremos online pronto!</p>
+            <p>- Equipo de mantenimiento</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

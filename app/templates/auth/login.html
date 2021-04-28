@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% from "formMacros/inputMacro.html" import render_field %}
+{% block title %}Login{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <div class="card">
+    <div class="card-header">
+      <h1>Iniciar sesión</h1>
+      {% if not habilitate %}
+      <span class="badge badge-danger">Pagina deshabilitada</span>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <form action="{{ url_for('auth_authenticate') }}" method="POST" class="">
+        {{ form.csrf_token }}
+
+        {{ render_field(form.email) }}
+      
+        {{ render_field(form.password) }}
+
+        
+          
+            
+        <button type="submit" class="btn btn-primary btn-block">Iniciar Sesión</button>
+            
+          
+      </form>
+
+
+    </div>
+    
+    
+  </div>
+
+  
+  <div class="row m-2">
+    <div class="col-5"><hr></div>
+    <div class="col-2"><p class="text-center">o</p></div>
+    <div class="col-5"><hr></div>
+    <div class="col-md-6"> <a class="btn btn-lg btn-block "style="color: white;background-color: #ea4335;" href="{{ url_for('oauth_google_login') }}"><i class="fab fa-google mr-2"></i> Iniciar Sesion con Google</a> </div>
+    <div class="col-md-6"> <a class="btn btn-lg btn-block "style="color: white;background-color: #3b5998;" href="{{ url_for('oauth_facebook_login') }}"><i class="fab fa-facebook-f mr-2"></i>  Iniciar Sesion con Facebook</a> </div>
+  </div>
+</div>
+
+{% endblock %}
